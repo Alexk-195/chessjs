@@ -24,6 +24,15 @@ var MirrorRanks = [
 ];
 
 var SQ_SIZE = 120;
+var BoardScale = 1;
+
+function initBoardSize() {
+  var size = Math.min(window.innerWidth, window.innerHeight);
+  BoardScale = size / 962; // 960px board + 2px border
+  document.getElementById('Board').style.transform = 'scale(' + BoardScale + ')';
+  document.getElementById('EngineOutput').style.top = (size + 10) + 'px';
+  document.getElementById('EngineOutput').style.left = '10px';
+}
 
 function MIRROR120(sq) {
   var file = MirrorFiles[FilesBrd[sq]];
@@ -120,8 +129,8 @@ function ClickedSquare(pageX, pageY) {
   var pageX = Math.floor(pageX);
   var pageY = Math.floor(pageY);
 
-  var file = Math.floor((pageX - workedX) / SQ_SIZE);
-  var rank = 7 - Math.floor((pageY - workedY) / SQ_SIZE);
+  var file = Math.floor((pageX - workedX) / (SQ_SIZE * BoardScale));
+  var rank = 7 - Math.floor((pageY - workedY) / (SQ_SIZE * BoardScale));
 
   var sq = FR2SQ(file, rank);
 
