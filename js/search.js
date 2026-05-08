@@ -113,7 +113,7 @@ function Quiescence(alpha, beta) {
       ++MoveNum
     ) {
       if (brd_moveList[MoveNum] == PvMove) {
-        brd_moveScores[MoveNum].score = 2000000;
+        brd_moveScores[MoveNum] = 2000000;
         break;
       }
     }
@@ -225,7 +225,7 @@ function AlphaBeta(alpha, beta, depth, DoNull) {
       ++MoveNum
     ) {
       if (brd_moveList[MoveNum] == PvMove) {
-        brd_moveScores[MoveNum].score = 2000000;
+        brd_moveScores[MoveNum] = 2000000;
         break;
       }
     }
