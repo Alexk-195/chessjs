@@ -399,7 +399,7 @@ function StartSearch() {
   var t = $.now();
   var tt = $("#ThinkTimeChoice").val();
   console.log("time:" + t + " TimeChoice:" + tt);
-  srch_time = parseInt(tt) * 1000;
+  srch_time = parseFloat(tt) * 1000;
   SearchPosition();
 
   // TODO MakeMove here on internal board and GUI
