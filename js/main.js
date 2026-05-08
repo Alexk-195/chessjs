@@ -2,8 +2,6 @@ $(document).ajaxComplete(function () {});
 
 $(function () {
   init();
-  initBoardSize();
-  $(window).on('resize', initBoardSize);
   $("#fenIn").val(START_FEN);
   NewGame();
   newGameAjax();
