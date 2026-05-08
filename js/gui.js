@@ -24,15 +24,6 @@ var MirrorRanks = [
 ];
 
 var SQ_SIZE = 120;
-var BoardScale = 1;
-
-function initBoardSize() {
-  var size = Math.min(window.innerWidth, window.innerHeight);
-  BoardScale = size / 962; // 960px board + 2px border
-  document.getElementById('Board').style.transform = 'scale(' + BoardScale + ')';
-  document.getElementById('EngineOutput').style.top = (size + 10) + 'px';
-  document.getElementById('EngineOutput').style.left = '10px';
-}
 
 function MIRROR120(sq) {
   var file = MirrorFiles[FilesBrd[sq]];
@@ -112,25 +103,25 @@ function CheckResult() {
 }
 
 function ClickedSquare(pageX, pageY) {
-  var offset = $("#Board").offset();
+  var position = $("#Board").position();
   console.log(
     "Piece clicked at " +
       pageX +
       "," +
       pageY +
       " board top:" +
-      offset.top +
+      position.top +
       " board left:" +
-      offset.left
+      position.left
   );
 
-  var workedX = Math.floor(offset.left);
-  var workedY = Math.floor(offset.top);
+  var workedX = Math.floor(position.left);
+  var workedY = Math.floor(position.top);
   var pageX = Math.floor(pageX);
   var pageY = Math.floor(pageY);
 
-  var file = Math.floor((pageX - workedX) / (SQ_SIZE * BoardScale));
-  var rank = 7 - Math.floor((pageY - workedY) / (SQ_SIZE * BoardScale));
+  var file = Math.floor((pageX - workedX) / SQ_SIZE);
+  var rank = 7 - Math.floor((pageY - workedY) / SQ_SIZE);
 
   var sq = FR2SQ(file, rank);
 
@@ -221,33 +212,6 @@ $(document).on("click", ".Square", function (e) {
     UserMove.from != SQUARES.NO_SQ
   ) {
     UserMove.to = ClickedSquare(e.pageX, e.pageY);
-    MakeUserMove();
-  }
-});
-
-$(document).on("touchstart", ".Piece", function (e) {
-  e.preventDefault();
-  var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
-  console.log("Piece Touch");
-  if (srch_thinking == BOOL.FALSE && GameController.PlayerSide == brd_side) {
-    if (UserMove.from == SQUARES.NO_SQ)
-      UserMove.from = ClickedSquare(touch.pageX, touch.pageY);
-    else UserMove.to = ClickedSquare(touch.pageX, touch.pageY);
-
-    MakeUserMove();
-  }
-});
-
-$(document).on("touchstart", ".Square", function (e) {
-  e.preventDefault();
-  var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
-  console.log("Square Touch");
-  if (
-    srch_thinking == BOOL.FALSE &&
-    GameController.PlayerSide == brd_side &&
-    UserMove.from != SQUARES.NO_SQ
-  ) {
-    UserMove.to = ClickedSquare(touch.pageX, touch.pageY);
     MakeUserMove();
   }
 });
