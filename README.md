@@ -22,3 +22,7 @@ Use the controls below the board:
 - **Flip** — flip the board orientation
 - **Revoke** — take back the last move
 - **Thinking Time** — select how long the engine thinks per move
+
+## Credits
+
+Forked from [kidschess/chessjs](https://github.com/kidschess/chessjs) by Jiqing Yao.
