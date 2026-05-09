@@ -24,7 +24,7 @@
 			<input type="text" id="fenIn" />		
 			<button type="button" id="SetFen" >Set Position</button>	
 		</div>	
-		<h1 id="GameTitle">Kindle Js Chess</h1>
+		<h1 id="GameTitle">Kindle Js Chess v1.3</h1>
 		<div id="Board">
 		</div>
 		<div id="TakenPieces">
@@ -48,17 +48,19 @@
 			<button type="button" id="NewGameButton">New</button>
 			<button type="button" id="FlipButton">Flip</button>
 			<button type="button" id="TakeButton">Revoke</button>
+			<button type="button" id="StatsButton" onclick="var d=document.getElementById('StatsDiv');d.style.display=d.style.display==='none'?'block':'none'">Stats</button>
 			<div id="ThinkingImageDiv">	</div>
 			</br></br></br>
+			<div id="StatsDiv" style="display:none">
 			<span id="BestOut">BestMove:</span>
 			<span id="DepthOut">Depth:</span>
 			<span id="ScoreOut">Score:</span>
 			<span id="NodesOut">Nodes:</span>
 			<span id="OrderingOut">Ordering:</span>
 			<span id="TimeOut">Time:</span>
+			</div>
 			<span id="GameStatus"></span>
 			<span id="LoadingBook">Loading book, please wait....</span>
-			<span id="Version">v1.2</span>
 		</div>
 		<script src="js/jquery-1.10.1.min.js"></script>
 		<!--<script src="js/all.js"></script>-->
@@ -75,5 +77,8 @@
 		<script src="js/protocol.js"></script>
 		<script src="js/gui.js"></script>
 		<script src="js/main.js"></script>
+		<footer>
+			<a href="https://github.com/alexk-195/chessjs">github.com/alexk-195/chessjs</a>
+		</footer>
 	</body>
 </html>
