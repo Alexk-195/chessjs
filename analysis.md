@@ -2,7 +2,7 @@
 
 ## Short version
 
-`chessjs` is a **JavaScript port of "VICE"** (Bluefever Software's well-known C tutorial chess engine), wrapped in a minimal jQuery + HTML UI and hosted on GitHub Pages as "Kindle Chess". It's a small project (35 commits, ~600 KB total, default branch `develop`) whose engine source is essentially a faithful translation of Richard Allbert's tutorial code into JavaScript. The README is empty apart from a TODO that says "try with the new kindle" — explaining the otherwise-cryptic project name.
+`chessjs` is a **JavaScript port of "VICE"** (Bluefever Software's well-known C tutorial chess engine), wrapped in a minimal jQuery + HTML UI and hosted on GitHub Pages as "Kindle Chess". It's a small project (35 commits, ~600 KB total, default branch `develop`) whose engine source is essentially a faithful translation of Richard Allbert's tutorial code into Javascript. 
 
 ## Architecture overview
 
