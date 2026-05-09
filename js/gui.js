@@ -146,6 +146,43 @@ function ClickedSquare(pageX, pageY) {
   return sq;
 }
 
+var InitialPieceCounts = {};
+InitialPieceCounts[1]  = 8; // wP
+InitialPieceCounts[2]  = 2; // wN
+InitialPieceCounts[3]  = 2; // wB
+InitialPieceCounts[4]  = 2; // wR
+InitialPieceCounts[5]  = 1; // wQ
+InitialPieceCounts[7]  = 8; // bP
+InitialPieceCounts[8]  = 2; // bN
+InitialPieceCounts[9]  = 2; // bB
+InitialPieceCounts[10] = 2; // bR
+InitialPieceCounts[11] = 1; // bQ
+
+function UpdateTakenPieces() {
+  var blackTakenHtml = '';
+  var whiteTakenHtml = '';
+
+  var blackPieces = [PIECES.bQ, PIECES.bR, PIECES.bB, PIECES.bN, PIECES.bP];
+  var whitePieces = [PIECES.wQ, PIECES.wR, PIECES.wB, PIECES.wN, PIECES.wP];
+
+  blackPieces.forEach(function(pce) {
+    var taken = InitialPieceCounts[pce] - brd_pceNum[pce];
+    for (var i = 0; i < taken; i++) {
+      blackTakenHtml += '<img src="images/' + SideChar[PieceCol[pce]] + PceChar[pce].toUpperCase() + '.png" class="TakenPieceImg"/>';
+    }
+  });
+
+  whitePieces.forEach(function(pce) {
+    var taken = InitialPieceCounts[pce] - brd_pceNum[pce];
+    for (var i = 0; i < taken; i++) {
+      whiteTakenHtml += '<img src="images/' + SideChar[PieceCol[pce]] + PceChar[pce].toUpperCase() + '.png" class="TakenPieceImg"/>';
+    }
+  });
+
+  $('#BlackTaken').html(blackTakenHtml);
+  $('#WhiteTaken').html(whiteTakenHtml);
+}
+
 function CheckAndSet() {
   if (CheckResult() != BOOL.TRUE) {
     GameController.GameOver = BOOL.FALSE;
@@ -156,6 +193,7 @@ function CheckAndSet() {
   }
   //var fenStr = BoardToFen();
   $("#currentFenSpan").text(BoardToFen());
+  UpdateTakenPieces();
 }
 
 function PreSearch() {
@@ -407,6 +445,7 @@ $("#TakeButton").click(function () {
     brd_ply = 0;
     SetInitialBoardPieces();
     $("#currentFenSpan").text(BoardToFen());
+    UpdateTakenPieces();
   }
 });
 
