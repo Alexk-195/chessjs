@@ -1,52 +1,3 @@
-Let me search for the repository first to get a valid URL.
-
-Good — the repo exists. Let me fetch it.
-
-Useful — now I know the layout. The repository is small (35 commits, 6 stars, 10 forks, default branch `develop`), and the substance lives in the `js/` directory. The README is essentially empty ("pure js chess" plus a TODO item "try with the new kindle"), so we have to read the source itself. Let me list the `js/` folder.
-
-GitHub's tree-listing endpoint is blocked. Let me try the API instead, which is allowed.
-
-I'll fall back to the `bash_tool` and clone the repo so I can inspect everything locally.
-
-This is a full classical chess-engine architecture — exactly the file layout you'd see in a tutorial-style engine. Let me confirm a hunch: this looks like a JavaScript port of **VICE** ("Video Instructional Chess Engine"), the well-known C engine by Bluefever Software whose YouTube series is the canonical "build your own chess engine" tutorial. The filenames (`movegen.js`, `makemove.js`, `pvtable.js`, `perft.js`, `io.js`, `search.js`, `evaluate.js`) match VICE's module split exactly. Let me verify by reading a few files.
-
-Three things confirmed already:
-
-1. The "smartforwarder" link **is hardcoded into the source** — it's not an injection at fetch time, it's intentional backlink/promo placed inside the engine UI.
-2. There's **no Web Worker** — scripts are loaded directly into the page, so the search runs on the main thread (this is a noticeable architectural choice; multi-second searches will block the UI unless done with cooperative `setTimeout` yielding).
-3. Google Analytics is wired up.
-
-Now let me quickly inspect the engine internals.
-
-This is unmistakably the **VICE engine ported to JavaScript**, line by line. Every single design choice here is straight out of Bluefever's tutorial:
-
-- **`BRD_SQ_NUM = 120`** — the **10×12 mailbox** representation. The board is a 1-D array of 120 squares: 8 playable files × 8 ranks (= 64) padded with two ranks of "off-board" sentinels above/below and a one-square sentinel either side, so move generation can simply add a direction offset and check `OFFBOARD` instead of doing range arithmetic. The directional offsets confirm this: `KnDir = [-8, -19, -21, -12, 8, 19, 21, 12]` are the eight knight jumps in a 10-wide grid.
-- **Move encoding in a single 25-bit integer** (the comment-block at line 300). Bit-packed: 7 bits "from", 7 bits "to", 4 bits captured-piece, 4 bits promoted-piece, plus three flags (en-passant, pawn-double-push, castle). Extraction via the `FROMSQ / TOSQ / CAPTURED / PROMOTED` macros plus the `MFLAGEP / MFLAGPS / MFLAGCA / MFLAGCAP / MFLAGPROM` masks. Identical layout to VICE.
-- **Piece values**: `P=100, N=B=325, R=550, Q=1000, K=50000` — VICE's exact numbers (most modern engines use 100/320/330/500/900 or similar).
-- **Zobrist hashing** with `PieceKeys[14*120]`, `CastleKeys[16]`, `SideKey`, and `HASH_PCE / HASH_CA / HASH_SIDE / HASH_EP` macros — the hash is incrementally updated by XOR'ing in/out piece-square keys when moves are made/unmade.
-- **`CastlePerm[120]`** — a clever trick from VICE: castling rights are 4 bits (`WKCA=1, WQCA=2, BKCA=4, BQCA=8`), and to update them after any move you simply do `castlePerm &= CastlePerm[fromSq] & CastlePerm[toSq]`. The lookup table has `15` (= keep all rights) everywhere except the four corner squares and the two king starting squares, which carry the appropriate bitmask of rights to remove.
-- **`Mirror64`** — for a tapered/pure white-perspective evaluation. Black's piece-square table values are obtained by mirroring the square index vertically, so only white tables need to be stored.
-
-One quibble: the `RAND_32` function uses `Math.random()` with `* 255 + 1` per byte, which yields values in `[1, 255]` — never zero. So Zobrist keys here have **no zero bytes**, which is mildly biased but harmless in practice (and reduces hash collisions with a typical "all zero" sentinel position-key).
-
-Let me look at the search and evaluation, the parts that determine actual playing strength.
-
-Now I can give a definitive description of the search algorithm.
-
-Let me also peek at the move generator briefly and check the "book" mechanism, since that was the most user-visible loading message.
-
-Several important findings:
-
-1. **The opening book code is commented out in `main.js`**. The "Loading book, please wait..." message is shown indefinitely (and `GameController.BookLoaded` stays `BOOL.FALSE` forever) because the AJAX call that would load `bookXml.xml` is disabled. So in practice the engine **never plays book moves** — it always searches from the start position. The book infrastructure exists in `board.js` (as `brd_bookLines`, `LineMatch`, `BookMove`) but it's dormant.
-2. **The `BookMove` matcher is a string-based linear scan** through `brd_bookLines` comparing against the move-history line. Comment mentions a `lengthOfLineHack`. This is a far cry from a Polyglot binary book; it's a homemade text-line book format that was in development and abandoned.
-3. **No Web Worker** — `srch_stop` is checked every 2048 nodes (`srch_nodes & 2047`), so the search yields cooperatively only by *aborting*, not by actually returning control to the browser. This means the UI **does freeze** during search — exactly what a Web Worker would prevent.
-
-Let me look at the search algorithm in detail one more time to summarise it precisely.
-
-Now I have enough to write a complete and accurate analysis.
-
----
-
 # Detailed analysis of `kidschess/chessjs`
 
 ## Short version
@@ -122,7 +73,6 @@ The `Ordering` percentage shown in the UI is `srch_fhf / srch_fh * 100` — i.e.
 - **No real transposition table.** `pvtable.js` is a PV-only table: it stores `(posKey, move)` pairs and is probed *only* to seed move ordering. It does not store scores or depth, so positions reached by transposition aren't re-used to cut off; only the move ordering benefits. This is a significant strength penalty.
 - **No aspiration windows** — every iteration searches the full `(-INFINITE, +INFINITE)` window.
 - **No late-move reductions, no futility pruning, no SEE.**
-- **Bug / API mismatch in `Quiescence`** at line 116: it writes `brd_moveScores[MoveNum].score = 2000000`, but `brd_moveScores` is a flat array of numbers (not objects), so this assignment silently creates a `.score` property on a boxed number that's then thrown away. The PV-move boost in quiescence therefore **does not actually work** — a real bug. The same line in `AlphaBeta` at line 228 has the identical bug. Move ordering for the PV move falls back to whatever score MVV-LVA assigned (still high for captures, but not "highest").
 - **`EvalPosition(pos)` is called with an argument** at line 172 that the function ignores (the function takes no parameters). Harmless, but a port-from-C artifact.
 - **Search runs on the main thread** with only every-2048-node abort checks, so the page genuinely freezes during a multi-second search. Putting the engine in a Web Worker would be the single biggest UX improvement.
 
@@ -144,8 +94,7 @@ Overall this is a **roughly 1500–1800 ELO** evaluation — adequate for a casu
 
 - jQuery 1.10.1 only.
 - The board is rendered as plain `<img>` tags inside a `<div id="Board">`, swapped on each move. No animation, no SVG, no canvas.
-- A `SmartForwarder` link is **hardcoded into `index.html`** between the "Engine Output" header and the thinking-time selector, with no logical connection to chess. This is a **deliberate backlink for SEO/promotion**, not anything injected by the fetcher. If you forked this you'd want to remove it.
-- Google Analytics tag (`G-Q94743BW9M`) is also wired in.
+- Google Analytics tag (`G-Q94743BW9M`) is wired in.
 
 ## The "Loading book, please wait…" message
 
@@ -155,18 +104,9 @@ The book format itself, judging from the surviving `BookMove()` and `LineMatch()
 
 ## Bottom line
 
-This is an **educational engine** — almost certainly a student's port of the VICE tutorial, finished enough to play but with rough edges (no TT scores, busted PV-move ordering in the quiescence/main loops because of the `.score` typo, dormant book, main-thread search). On the strength axis you'd likely see something around club level; on the engineering axis it's a clean, readable example of how the classical chess-engine architecture maps to JavaScript. If you wanted to fork and improve it, the highest-leverage changes — in roughly this order — would be:
+This is an **educational engine** — almost certainly a student's port of the VICE tutorial, finished enough to play but with rough edges (no TT scores, dormant book, main-thread search). On the strength axis you'd likely see something around club level; on the engineering axis it's a clean, readable example of how the classical chess-engine architecture maps to JavaScript. If you wanted to improve it further, the highest-leverage changes — in roughly this order — would be:
 
 1. Move the engine into a Web Worker so the UI doesn't freeze.
-2. Fix the `brd_moveScores[MoveNum].score = 2000000` assignments to write the integer directly.
-3. Promote `pvtable.js` from a PV-only cache to a real transposition table that stores `(score, depth, flag, bestMove)` and produces alpha/beta cutoffs.
-4. Add aspiration windows and late-move reductions.
-5. Enable an actual opening book — Polyglot `.bin` parsing in JS is a few hundred lines, or just JSON-encode a simple book.
-
-Want me to work on any of these, or sketch out, say, a Web Worker wrapper or a proper transposition table for it?
-
- The repository is at:
-
-**https://github.com/kidschess/chessjs**
-
-Default branch is `develop` (not `main` or `master`), so direct file links use that branch — for example, the search code is at `https://github.com/kidschess/chessjs/blob/develop/js/search.js`.
+2. Promote `pvtable.js` from a PV-only cache to a real transposition table that stores `(score, depth, flag, bestMove)` and produces alpha/beta cutoffs.
+3. Add aspiration windows and late-move reductions.
+4. Enable an actual opening book — Polyglot `.bin` parsing in JS is a few hundred lines, or just JSON-encode a simple book.
