@@ -1,5 +1,7 @@
 # Kindle Chess
 
+**[Play online →](https://alexk-195.github.io/chessjs/)**
+
 A chess engine and GUI written in pure JavaScript, designed to run in the Kindle browser with no server or build step required.
 
 ## Features
