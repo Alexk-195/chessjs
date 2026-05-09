@@ -7,7 +7,7 @@ A chess engine and GUI written in pure JavaScript, designed to run in the Kindle
 ## Features
 
 - Full chess engine with alpha-beta search and move ordering
-- Adjustable thinking time (1–10 seconds)
+- Adjustable thinking time (0.5–10 seconds)
 - Flip board, take back moves, set position via FEN
 - Responsive layout — scales to fill any screen size, including Kindle displays
 - Pinch-to-zoom enabled on mobile/e-reader browsers
@@ -22,7 +22,3 @@ Use the controls below the board:
 - **Flip** — flip the board orientation
 - **Revoke** — take back the last move
 - **Thinking Time** — select how long the engine thinks per move
-
-## TODO
-
-- [ ] Try with the new Kindle
