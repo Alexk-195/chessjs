@@ -23,7 +23,7 @@ var MirrorRanks = [
   RANKS.RANK_1,
 ];
 
-var SQ_SIZE = 120;
+var SQ_SIZE = 70;
 
 function MIRROR120(sq) {
   var file = MirrorFiles[FilesBrd[sq]];
